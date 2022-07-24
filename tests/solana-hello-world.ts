@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
+import { Program, BN } from "@project-serum/anchor";
 import { SolanaHelloWorld } from "../target/types/solana_hello_world";
 import { expect, assert } from 'chai'
 
@@ -12,7 +12,9 @@ describe("solana-hello-world", () => {
   it("Hello World Test Version", async () => {
     // Add your test here.
     const baseAccount = anchor.web3.Keypair.generate();
+    console.log(baseAccount);
     const wallet = (program.provider as anchor.AnchorProvider).wallet
+    console.log(wallet)
     const tx = await program.methods.create().accounts({
       baseAccount: baseAccount.publicKey,
       user: wallet.publicKey,
@@ -21,6 +23,6 @@ describe("solana-hello-world", () => {
     console.log("Your transaction signature", tx);
 
     let account = await program.account.baseAccount.fetch(baseAccount.publicKey)
-    expect(account.count).to.equal(0)
+    expect(new BN(account.count)).to.equal(new BN("0"))
   });
 });

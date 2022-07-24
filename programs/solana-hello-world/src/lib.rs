@@ -20,7 +20,7 @@ mod solana_hello_world {
 
 #[derive(Accounts)]
 pub struct Create<'info> {
-    #[account(init, payer = user, space = 1000)]
+    #[account(init, payer = user, space = 16 + 16)]
     pub base_account: Account<'info, BaseAccount>,
     #[account(mut)]
     pub user: Signer<'info>,
