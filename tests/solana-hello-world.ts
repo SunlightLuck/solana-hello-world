@@ -15,14 +15,22 @@ describe("solana-hello-world", () => {
     console.log(baseAccount);
     const wallet = (program.provider as anchor.AnchorProvider).wallet
     console.log(wallet)
-    const tx = await program.methods.create().accounts({
+    const createTx = await program.methods.create().accounts({
       baseAccount: baseAccount.publicKey,
       user: wallet.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId
     }).signers([baseAccount]).rpc();
-    console.log("Your transaction signature", tx);
+    console.log("Your Create transaction signature", createTx);
+
+    //let account = await program.account.baseAccount.fetch(baseAccount.publicKey)
+    //expect(account.count).to.equal(new BN("0"))
+
+    const incrementTx = await program.methods.increment().accounts({
+      baseAccount: baseAccount.publicKey
+    }).rpc();
+    console.log("Your Increment transaction signature", incrementTx);
 
     let account = await program.account.baseAccount.fetch(baseAccount.publicKey)
-    expect(new BN(account.count)).to.equal(new BN("0"))
+    expect(account.count).to.equal(new BN("1"))
   });
 });
