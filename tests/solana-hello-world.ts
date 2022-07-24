@@ -1,214 +1,26 @@
-import * as anchor from '@project-serum/anchor';
-import { Program } from '@project-serum/anchor';
-import { SolanaHelloWorld } from '../target/types/solana_hello_world';
-import { expect, assert } from 'chai';
+import * as anchor from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
+import { SolanaHelloWorld } from "../target/types/solana_hello_world";
+import { expect, assert } from 'chai'
 
-describe('SolanaHelloWorld', () => {
-
+describe("solana-hello-world", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.local());
+  anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.SolanaHelloWorld as Program<SolanaHelloWorld>;
-  it('setup tweet platform!', async () => {
-    const tweetKeypair = anchor.web3.Keypair.generate();
-    const user = program.provider.publicKey;
-    await program.rpc.setupPlatform({
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-        user: user,
-        systemProgram: anchor.web3.SystemProgram.programId
-      },
-      signers: [tweetKeypair]
-    });
 
-    let tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(0);
-    expect(tweet.message).to.equal('');
-  });
+  it("Hello World Test Version", async () => {
+    // Add your test here.
+    const baseAccount = anchor.web3.Keypair.generate();
+    const wallet = (program.provider as anchor.AnchorProvider).wallet
+    const tx = await program.methods.create().accounts({
+      baseAccount: baseAccount.publicKey,
+      user: wallet.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId
+    }).signers([baseAccount]).rpc();
+    console.log("Your transaction signature", tx);
 
-  it('Write a tweet', async () => {
-    const tweetKeypair = anchor.web3.Keypair.generate();
-    const user = program.provider.publicKey;
-    await program.rpc.setupPlatform({
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-        user: user,
-        systemProgram: anchor.web3.SystemProgram.programId
-      },
-      signers: [tweetKeypair]
-    });
-
-    let tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(0);
-    expect(tweet.message).to.equal('');
-
-    await program.rpc.writeTweet('Hello World!', user, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-
-    expect(tweet.likes).to.equal(0);
-    expect(tweet.message).to.equal('Hello World!');
-    expect(tweet.creator.toString()).to.equal(user.toString());
-  });
-
-  it('should like tweet up no more than 5 times', async () => {
-    const tweetKeypair = anchor.web3.Keypair.generate();
-    const user = program.provider.publicKey;
-    await program.rpc.setupPlatform({
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-        user: user,
-        systemProgram: anchor.web3.SystemProgram.programId
-      },
-      signers: [tweetKeypair]
-    });
-
-    let tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(0);
-    expect(tweet.message).to.equal('');
-
-    await program.rpc.writeTweet('Hello World!', user, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(0);
-    expect(tweet.message).to.equal('Hello World!');
-    expect(tweet.creator.toString()).to.equal(user.toString());
-
-    await program.rpc.likeTweet(user, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(1);
-    expect(tweet.peopleWhoLiked[0].toString()).to.equal(user.toString());
-
-    try {
-      await program.rpc.likeTweet(user, {
-        accounts: {
-          tweet: tweetKeypair.publicKey,
-        },
-        signers: []
-      });
-
-      assert.ok(false);
-    } catch (error) {
-      const expectedError = 'User has already liked the tweet';
-      assert.equal(error.error.errorMessage, expectedError);
-    }
-
-
-    const secondUser = anchor.web3.Keypair.generate();
-    await program.rpc.likeTweet(secondUser.publicKey, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(2);
-    expect(tweet.peopleWhoLiked[1].toString()).to.equal(secondUser.publicKey.toString());
-
-
-
-    const thirdUser = anchor.web3.Keypair.generate();
-    await program.rpc.likeTweet(thirdUser.publicKey, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(3);
-    expect(tweet.peopleWhoLiked[2].toString()).to.equal(thirdUser.publicKey.toString());
-
-
-
-    const fourthUser = anchor.web3.Keypair.generate();
-    await program.rpc.likeTweet(fourthUser.publicKey, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(4);
-    expect(tweet.peopleWhoLiked[3].toString()).to.equal(fourthUser.publicKey.toString());
-
-
-
-    const fifthUser = anchor.web3.Keypair.generate();
-    await program.rpc.likeTweet(fifthUser.publicKey, {
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-      },
-      signers: []
-    });
-
-    tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(5);
-    expect(tweet.peopleWhoLiked[4].toString()).to.equal(fifthUser.publicKey.toString());
-
-
-    const sixthUser = anchor.web3.Keypair.generate();
-    try {
-
-
-      await program.rpc.likeTweet(sixthUser.publicKey, {
-        accounts: {
-          tweet: tweetKeypair.publicKey,
-        },
-        signers: []
-      });
-
-      assert.ok(false);
-    } catch (error) {
-      assert.equal(error.error.errorMessage, 'Cannot receive more than 5 likes');
-    }
-  });
-
-  it('should not allow writting an empty message', async () => {
-    const tweetKeypair = anchor.web3.Keypair.generate();
-    const user = program.provider.publicKey;
-    await program.rpc.setupPlatform({
-      accounts: {
-        tweet: tweetKeypair.publicKey,
-        user: user,
-        systemProgram: anchor.web3.SystemProgram.programId
-      },
-      signers: [tweetKeypair]
-    });
-
-    let tweet = await program.account.tweet.fetch(tweetKeypair.publicKey);
-    expect(tweet.likes).to.equal(0);
-    expect(tweet.message).to.equal('');
-
-
-    try {
-      await program.rpc.writeTweet('', user, {
-        accounts: {
-          tweet: tweetKeypair.publicKey,
-        },
-        signers: []
-      });
-      assert.ok(false);
-    } catch (error) {
-      assert.equal(error.error.errorMessage, 'Message cannot be empty');
-    }
+    let account = await program.account.baseAccount.fetch(baseAccount.publicKey)
+    expect(account.count).to.equal(0)
   });
 });
